@@ -1,0 +1,37 @@
+# 开发环境配置
+server:
+  addr: ':8080'
+  mode: 'debug'
+  read_timeout: 60s
+  write_timeout: 60s
+
+database:
+  dsn: 'root:123456@tcp(127.0.0.1:3306)/go_monolith?charset=utf8mb4&parseTime=True&loc=Local'
+  max_open_conns: 10
+  max_idle_conns: 5
+  conn_max_lifetime: 1h
+  conn_max_idle_time: 10m
+
+cache:
+  type: 'memory' # redis / memory
+  memory:
+    cleanup_interval: 10m
+  # redis配置示例（如需使用redis，将type改为redis并取消下面的注释）
+  # redis:
+  #   addr: "127.0.0.1:6379"
+  #   password: ""
+  #   db: 0
+
+log:
+  level: 'debug' # debug / info / warn / error
+  filename: 'logs/app.log'
+  max_size: 100
+  max_backups: 3
+  max_age: 7
+  compress: true
+  console: true
+  enable_color: true
+
+jwt:
+  secret: 'dev-secret-key-change-in-production'
+  expire_time: 24h
