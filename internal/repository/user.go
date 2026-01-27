@@ -17,6 +17,7 @@ type UserRepository interface {
 	Create(ctx context.Context, user *entity.User) error
 	Update(ctx context.Context, user *entity.User) error
 	Delete(ctx context.Context, id int64) error
+	List(ctx context.Context, page, pageSize int, keyword string) ([]*entity.User, int64, error)
 }
 
 type userRepoImpl struct {
@@ -71,7 +72,34 @@ func (r *userRepoImpl) Update(ctx context.Context, user *entity.User) error {
 	return r.db.WithContext(ctx).Updates(user).Error
 }
 
-// Delete 删除用户
+// Delete 删除用户（软删除）
 func (r *userRepoImpl) Delete(ctx context.Context, id int64) error {
 	return r.db.WithContext(ctx).Delete(&entity.User{}, id).Error
+}
+
+// List 分页查询用户列表
+func (r *userRepoImpl) List(ctx context.Context, page, pageSize int, keyword string) ([]*entity.User, int64, error) {
+	var users []*entity.User
+	var total int64
+
+	query := r.db.WithContext(ctx).Model(&entity.User{})
+
+	// 关键词搜索
+	if keyword != "" {
+		keyword = "%" + keyword + "%"
+		query = query.Where("username LIKE ? OR email LIKE ?", keyword, keyword)
+	}
+
+	// 获取总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 分页查询
+	offset := (page - 1) * pageSize
+	if err := query.Offset(offset).Limit(pageSize).Order("id DESC").Find(&users).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return users, total, nil
 }

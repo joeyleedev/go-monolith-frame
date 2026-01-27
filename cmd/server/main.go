@@ -100,10 +100,25 @@ func main() {
 	// API路由组
 	api := r.Group("/api/v1")
 	{
+		// 公开路由（无需认证）
 		users := api.Group("/users")
 		{
-			users.GET("/:id", userHandler.GetUser)
+			users.POST("/login", userHandler.Login)
 			users.POST("", userHandler.CreateUser)
+		}
+
+		// 需要认证的路由
+		authGroup := api.Group("")
+		authGroup.Use(middleware.Auth())
+		{
+			users := authGroup.Group("/users")
+			{
+				users.GET("", userHandler.ListUsers)
+				users.GET("/:id", userHandler.GetUser)
+				users.PUT("/:id", userHandler.UpdateUser)
+				users.DELETE("/:id", userHandler.DeleteUser)
+				users.PATCH("/:id/password", userHandler.ChangePassword)
+			}
 		}
 	}
 
