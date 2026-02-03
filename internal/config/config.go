@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/viper"
 	"go-monolith-frame/pkg/cache"
 	"go-monolith-frame/pkg/logger"
@@ -56,7 +57,7 @@ func Load(env string) (*Config, error) {
 
 	// 4. 反序列化到 Config 结构
 	var cfg Config
-	if err := v.Unmarshal(&cfg); err != nil {
+	if err := v.Unmarshal(&cfg, viper.DecodeHook(mapstructure.StringToTimeDurationHookFunc())); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
