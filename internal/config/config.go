@@ -2,14 +2,13 @@ package config
 
 import (
 	"fmt"
-	"os"
+	"strings"
 	"time"
 
+	"github.com/spf13/viper"
 	"go-monolith-frame/pkg/cache"
 	"go-monolith-frame/pkg/logger"
 	"go-monolith-frame/pkg/mysql"
-
-	"gopkg.in/yaml.v3"
 )
 
 // Config 应用配置
@@ -39,15 +38,26 @@ var globalConfig *Config
 
 // Load 加载配置文件
 func Load(env string) (*Config, error) {
-	configPath := fmt.Sprintf("configs/config.%s.yaml", env)
-	data, err := os.ReadFile(configPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read config file %s: %w", configPath, err)
+	v := viper.New()
+
+	// 1. 设置配置文件路径和名称
+	v.SetConfigName(fmt.Sprintf("config.%s", env))
+	v.SetConfigType("yaml")
+	v.AddConfigPath("configs")
+
+	// 2. 启用自动环境变量读取
+	v.AutomaticEnv()
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	// 3. 读取配置文件（作为默认值）
+	if err := v.ReadInConfig(); err != nil {
+		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
+	// 4. 反序列化到 Config 结构
 	var cfg Config
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("failed to parse config file: %w", err)
+	if err := v.Unmarshal(&cfg); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
 	globalConfig = &cfg

@@ -22,6 +22,7 @@ import (
 	"go-monolith-frame/pkg/response"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
 
@@ -35,6 +36,11 @@ func init() {
 }
 
 func main() {
+	// 0. 加载 .env 文件（如果存在）
+	if err := godotenv.Load(); err == nil {
+		fmt.Println("Loaded .env file")
+	}
+
 	// 1. 加载配置
 	cfg, err := config.Load(env)
 	if err != nil {

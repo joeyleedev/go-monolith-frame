@@ -16,7 +16,7 @@ log:
   enable_color: true
 
 database:
-  dsn: 'root:123456@tcp(127.0.0.1:3306)/go_monolith?charset=utf8mb4&parseTime=True&loc=Local'
+  dsn: ''  # 通过环境变量 DATABASE_DSN 设置，例如: root:password@tcp(127.0.0.1:3306)/go_monolith?charset=utf8mb4&parseTime=True&loc=Local
   max_open_conns: 10
   max_idle_conns: 5
   conn_max_lifetime: 1h
@@ -31,9 +31,9 @@ cache:
     cleanup_interval: 10m
   redis:
     addr: '127.0.0.1:6379'
-    password: ''
+    password: ''  # 通过环境变量 CACHE_REDIS_PASSWORD 设置
     db: 0
 
 jwt:
-  secret: 'dev-secret-key-change-in-production'
+  secret: ''  # 通过环境变量 JWT_SECRET 设置
   expire_time: 24h
