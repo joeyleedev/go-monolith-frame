@@ -80,43 +80,43 @@ func initLogger(cfg *Config) error {
 
 // Debug 记录debug级别日志
 func Debug(msg string, fields ...zap.Field) {
-	if sugarLogger != nil {
-		sugarLogger.Debugw(msg, fieldsToMap(fields)...)
+	if globalLogger != nil {
+		globalLogger.Debug(msg, fields...)
 	}
 }
 
 // Info 记录info级别日志
 func Info(msg string, fields ...zap.Field) {
-	if sugarLogger != nil {
-		sugarLogger.Infow(msg, fieldsToMap(fields)...)
+	if globalLogger != nil {
+		globalLogger.Info(msg, fields...)
 	}
 }
 
 // Warn 记录warn级别日志
 func Warn(msg string, fields ...zap.Field) {
-	if sugarLogger != nil {
-		sugarLogger.Warnw(msg, fieldsToMap(fields)...)
+	if globalLogger != nil {
+		globalLogger.Warn(msg, fields...)
 	}
 }
 
 // Error 记录error级别日志
 func Error(msg string, fields ...zap.Field) {
-	if sugarLogger != nil {
-		sugarLogger.Errorw(msg, fieldsToMap(fields)...)
+	if globalLogger != nil {
+		globalLogger.Error(msg, fields...)
 	}
 }
 
 // Fatal 记录fatal级别日志并退出程序
 func Fatal(msg string, fields ...zap.Field) {
-	if sugarLogger != nil {
-		sugarLogger.Fatalw(msg, fieldsToMap(fields)...)
+	if globalLogger != nil {
+		globalLogger.Fatal(msg, fields...)
 	}
 }
 
 // With 创建带字段的logger
-func With(fields ...zap.Field) *zap.SugaredLogger {
-	if sugarLogger != nil {
-		return sugarLogger.With(fieldsToMap(fields)...)
+func With(fields ...zap.Field) *zap.Logger {
+	if globalLogger != nil {
+		return globalLogger.With(fields...)
 	}
 	return nil
 }
@@ -127,15 +127,6 @@ func Sync() error {
 		return globalLogger.Sync()
 	}
 	return nil
-}
-
-// fieldsToMap 将zap.Field转换为map
-func fieldsToMap(fields []zap.Field) []interface{} {
-	result := make([]interface{}, 0, len(fields)*2)
-	for _, field := range fields {
-		result = append(result, field.Key, field.Interface)
-	}
-	return result
 }
 
 // GetLogger 获取原始zap.Logger
