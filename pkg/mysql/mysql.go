@@ -17,7 +17,7 @@ func Init(cfg *Config) error {
 		DisableForeignKeyConstraintWhenMigrating: true,
 		Logger: NewZapGormLogger(
 			zap.L(),
-			cfg.LogLevel,
+			cfg.GetLogLevel(),
 			cfg.SlowThreshold,
 			cfg.IgnoreRecordNotFoundError,
 		),

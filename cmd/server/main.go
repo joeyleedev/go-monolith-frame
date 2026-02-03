@@ -19,7 +19,7 @@ import (
 	"go-monolith-frame/pkg/cache"
 	"go-monolith-frame/pkg/logger"
 	"go-monolith-frame/pkg/mysql"
-	appResponse "go-monolith-frame/pkg/response"
+	"go-monolith-frame/pkg/response"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -91,7 +91,7 @@ func main() {
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
-		appResponse.Success(c, gin.H{
+		response.Success(c, gin.H{
 			"status": "ok",
 			"time":   time.Now().Unix(),
 		})

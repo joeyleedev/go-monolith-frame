@@ -5,6 +5,16 @@ server:
   read_timeout: 60s
   write_timeout: 60s
 
+log:
+  level: 'info' # 生产环境使用info级别
+  filename: 'logs/app.log'
+  max_size: 100
+  max_backups: 10
+  max_age: 30
+  compress: true
+  console: false
+  enable_color: false
+
 database:
   dsn: 'user:password@tcp(127.0.0.1:3306)/go_monolith?charset=utf8mb4&parseTime=True&loc=Local'
   max_open_conns: 100
@@ -23,16 +33,6 @@ cache:
     addr: '127.0.0.1:6379'
     password: ''
     db: 0
-
-log:
-  level: 'info' # 生产环境使用info级别
-  filename: 'logs/app.log'
-  max_size: 100
-  max_backups: 10
-  max_age: 30
-  compress: true
-  console: false
-  enable_color: false
 
 jwt:
   secret: 'change-this-to-a-very-strong-secret-key'
