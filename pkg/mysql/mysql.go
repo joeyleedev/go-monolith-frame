@@ -3,6 +3,7 @@ package mysql
 import (
 	"fmt"
 
+	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -12,7 +13,15 @@ var DB *gorm.DB
 // Init 初始化数据库连接
 func Init(cfg *Config) error {
 	var err error
-	DB, err = gorm.Open(mysql.Open(cfg.DSN), &gorm.Config{})
+	DB, err = gorm.Open(mysql.Open(cfg.DSN), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+		Logger: NewZapGormLogger(
+			zap.L(),
+			cfg.LogLevel,
+			cfg.SlowThreshold,
+			cfg.IgnoreRecordNotFoundError,
+		),
+	})
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}

@@ -11,16 +11,18 @@ database:
   max_idle_conns: 5
   conn_max_lifetime: 1h
   conn_max_idle_time: 10m
+  log_level: 'info' # warn / info
+  slow_threshold: 500ms # 慢查询阈值
+  ignore_record_not_found_error: false # 是否忽略记录未找到错误
 
 cache:
   type: 'memory' # redis / memory
   memory:
     cleanup_interval: 10m
-  # redis配置示例（如需使用redis，将type改为redis并取消下面的注释）
-  # redis:
-  #   addr: "127.0.0.1:6379"
-  #   password: ""
-  #   db: 0
+  redis:
+    addr: '127.0.0.1:6379'
+    password: ''
+    db: 0
 
 log:
   level: 'debug' # debug / info / warn / error

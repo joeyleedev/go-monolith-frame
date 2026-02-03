@@ -1,29 +1,32 @@
 # 生产环境配置
 server:
-  addr: ":8080"
-  mode: "release"
+  addr: ':8080'
+  mode: 'release'
   read_timeout: 60s
   write_timeout: 60s
 
 database:
-  dsn: "user:password@tcp(127.0.0.1:3306)/go_monolith?charset=utf8mb4&parseTime=True&loc=Local"
+  dsn: 'user:password@tcp(127.0.0.1:3306)/go_monolith?charset=utf8mb4&parseTime=True&loc=Local'
   max_open_conns: 100
   max_idle_conns: 20
   conn_max_lifetime: 2h
   conn_max_idle_time: 30m
+  log_level: 'warn' # gorm日志级别：warn / info
+  slow_threshold: 200ms # 慢查询阈值
+  ignore_record_not_found_error: true # 是否忽略记录未找到错误
 
 cache:
-  type: "redis"  # 生产环境建议使用redis
+  type: 'redis'
   memory:
     cleanup_interval: 10m
   redis:
-    addr: "127.0.0.1:6379"
-    password: ""
+    addr: '127.0.0.1:6379'
+    password: ''
     db: 0
 
 log:
-  level: "info"  # 生产环境使用info级别
-  filename: "logs/app.log"
+  level: 'info' # 生产环境使用info级别
+  filename: 'logs/app.log'
   max_size: 100
   max_backups: 10
   max_age: 30
@@ -32,5 +35,5 @@ log:
   enable_color: false
 
 jwt:
-  secret: "change-this-to-a-very-strong-secret-key"
+  secret: 'change-this-to-a-very-strong-secret-key'
   expire_time: 7d
