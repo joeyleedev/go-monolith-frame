@@ -63,5 +63,4 @@ gopls.log
 embed.go
 
 # Claude AI
-.claude
-ClAUDE.md
+.claude/
