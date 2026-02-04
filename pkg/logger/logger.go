@@ -49,25 +49,25 @@ func Sync() error {
 
 // Debug logs a debug message
 func Debug(msg string, fields ...zap.Field) {
-	getLogger().WithOptions(zap.AddCallerSkip(1)).Debug(msg, fields...)
+	getLogger().Debug(msg, fields...)
 }
 
 // Info logs an info message
 func Info(msg string, fields ...zap.Field) {
-	getLogger().WithOptions(zap.AddCallerSkip(1)).Info(msg, fields...)
+	getLogger().Info(msg, fields...)
 }
 
 // Warn logs a warning message
 func Warn(msg string, fields ...zap.Field) {
-	getLogger().WithOptions(zap.AddCallerSkip(1)).Warn(msg, fields...)
+	getLogger().Warn(msg, fields...)
 }
 
 // Error logs an error message
 func Error(msg string, fields ...zap.Field) {
-	getLogger().WithOptions(zap.AddCallerSkip(1)).Error(msg, fields...)
+	getLogger().Error(msg, fields...)
 }
 
 // Fatal logs a fatal message
 func Fatal(msg string, fields ...zap.Field) {
-	getLogger().WithOptions(zap.AddCallerSkip(1)).Fatal(msg, fields...)
+	getLogger().Fatal(msg, fields...)
 }
