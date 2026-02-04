@@ -5,7 +5,6 @@ import (
 
 	"go-monolith-frame/internal/errcode"
 	"go-monolith-frame/internal/model/entity"
-	"go-monolith-frame/pkg/mysql"
 
 	"gorm.io/gorm"
 )
@@ -25,9 +24,9 @@ type userRepoImpl struct {
 }
 
 // NewUserRepository 创建UserRepository实例
-func NewUserRepository() UserRepository {
+func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepoImpl{
-		db: mysql.DB,
+		db: db,
 	}
 }
 

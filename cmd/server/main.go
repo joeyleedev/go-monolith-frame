@@ -61,13 +61,14 @@ func main() {
 	)
 
 	// 3. 初始化数据库
-	if err := mysql.Init(&cfg.Database); err != nil {
+	db, err := mysql.New(&cfg.Database)
+	if err != nil {
 		logger.Fatal("Failed to init database", zap.Error(err))
 	}
-	defer mysql.Close()
+	defer mysql.Close(db)
 
 	// 4. 自动迁移数据库表
-	if err := mysql.AutoMigrate(&entity.User{}); err != nil {
+	if err := mysql.AutoMigrate(db, &entity.User{}); err != nil {
 		logger.Fatal("Failed to auto migrate database", zap.Error(err))
 	}
 	logger.Info("Database migration completed")
@@ -80,7 +81,7 @@ func main() {
 	defer cacheClient.Close()
 
 	// 6. 初始化组件
-	userRepo := repository.NewUserRepository()
+	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo, cacheClient)
 	userHandler := handler.NewUserHandler(userService)
 

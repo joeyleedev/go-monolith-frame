@@ -62,6 +62,13 @@ func (l *zapGormLogger) Trace(ctx context.Context, begin time.Time, fc func() (s
 		zap.String("sql", sql),
 	}
 
+	// 提取并记录 context 中的信息
+	if ctx != nil {
+		if requestID := ctx.Value("request_id"); requestID != nil {
+			logFields = append(logFields, zap.Any("request_id", requestID))
+		}
+	}
+
 	if rows != -1 {
 		logFields = append(logFields, zap.Int64("rows", rows))
 	}
