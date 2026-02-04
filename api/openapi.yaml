@@ -1,0 +1,655 @@
+openapi: 3.0.3
+info:
+  title: Go Monolith Frame API
+  version: 1.0.0
+  description: |
+    Go Monolith Frame 是一个基于 Gin + GORM 的 Go 单体应用框架。
+    采用清晰的分层架构设计：Handler 层、Service 层、Repository 层、Model 层。
+
+    ## 认证说明
+    除了健康检查、登录和创建用户接口外，其他接口都需要 JWT 认证。
+    请求头格式：`Authorization: Bearer {token}`
+
+    ## 错误码规范
+    - `0xxxx` - 通用错误
+    - `2xxxx` - 用户模块错误
+
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8080
+    description: 本地开发环境
+  - url: http://api.example.com
+    description: 生产环境
+
+tags:
+  - name: Health
+    description: 健康检查
+  - name: Auth
+    description: 认证相关
+  - name: Users
+    description: 用户管理
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: 健康检查
+      description: 检查服务是否正常运行
+      security: []
+      responses:
+        '200':
+          description: 服务正常
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: 服务异常
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users/login:
+    post:
+      tags:
+        - Auth
+      summary: 用户登录
+      description: 使用邮箱和密码登录，返回 JWT Token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              normal:
+                summary: 正常登录
+                value:
+                  email: user@example.com
+                  password: password123
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Response'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: 密码错误或用户被禁用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users:
+    post:
+      tags:
+        - Users
+      summary: 创建用户
+      description: 创建新用户账号
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            examples:
+              normal:
+                summary: 正常创建用户
+                value:
+                  username: johndoe
+                  email: user@example.com
+                  password: password123
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Response'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: 参数错误或用户已存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Users
+      summary: 查询用户列表
+      description: 分页查询用户列表，支持按关键词搜索
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: true
+          description: 页码，从1开始
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            example: 1
+        - name: page_size
+          in: query
+          required: true
+          description: 每页数量
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+            example: 10
+        - name: keyword
+          in: query
+          description: 搜索关键词（匹配用户名或邮箱）
+          schema:
+            type: string
+            example: john
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Response'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ListUsersResponse'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users/{id}:
+    get:
+      tags:
+        - Users
+      summary: 获取用户详情
+      description: 根据用户ID获取用户信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用户ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Response'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 用户不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Users
+      summary: 更新用户信息
+      description: 更新指定用户的信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用户ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+            examples:
+              normal:
+                summary: 更新用户信息
+                value:
+                  username: johndoe_updated
+                  email: newemail@example.com
+                  status: 1
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Response'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 用户不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Users
+      summary: 删除用户
+      description: 软删除指定用户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用户ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 用户不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/users/{id}/password:
+    patch:
+      tags:
+        - Users
+      summary: 修改用户密码
+      description: 修改指定用户的密码
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 用户ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+            examples:
+              normal:
+                summary: 修改密码
+                value:
+                  old_password: oldpass123
+                  new_password: newpass456
+      responses:
+        '200':
+          description: 修改成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '400':
+          description: 参数错误或新密码与旧密码相同
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: 未授权或旧密码错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: 用户不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT 认证，从登录接口获取 token
+
+  schemas:
+    # 通用响应结构
+    Response:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          description: 响应状态码，0表示成功
+          example: 0
+        message:
+          type: string
+          description: 响应消息
+          example: success
+        data:
+          type: object
+          nullable: true
+          description: 响应数据
+          example: null
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          description: 错误码
+          example: 10001
+        message:
+          type: string
+          description: 错误信息
+          example: 服务器内部错误
+        data:
+          type: object
+          nullable: true
+          example: null
+
+    # 健康检查响应
+    HealthResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: success
+        data:
+          type: object
+          nullable: true
+          example:
+            status: ok
+            timestamp: 1704067200
+
+    # 用户相关响应
+    UserResponse:
+      type: object
+      required:
+        - id
+        - username
+        - email
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 用户ID
+          example: 1
+        username:
+          type: string
+          description: 用户名
+          example: johndoe
+        email:
+          type: string
+          format: email
+          description: 邮箱
+          example: user@example.com
+        status:
+          type: integer
+          description: 用户状态，0=禁用，1=启用
+          enum: [0, 1]
+          example: 1
+
+    LoginResponse:
+      type: object
+      required:
+        - token
+        - expires_at
+        - user
+      properties:
+        token:
+          type: string
+          description: JWT Token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImpvaG5kb2UiLCJleHAiOjE3MDQwNjcyMDB9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        expires_at:
+          type: integer
+          format: int64
+          description: 过期时间戳（秒）
+          example: 1704067200
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    ListUsersResponse:
+      type: object
+      required:
+        - total
+        - items
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: 总记录数
+          example: 100
+        items:
+          type: array
+          description: 用户列表
+          items:
+            $ref: '#/components/schemas/UserResponse'
+
+    # 请求模型
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: 邮箱地址
+          example: user@example.com
+        password:
+          type: string
+          minLength: 6
+          maxLength: 20
+          description: 密码
+          example: password123
+
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 20
+          description: 用户名
+          example: johndoe
+        email:
+          type: string
+          format: email
+          description: 邮箱地址
+          example: user@example.com
+        password:
+          type: string
+          minLength: 6
+          maxLength: 20
+          description: 密码
+          example: password123
+
+    UpdateUserRequest:
+      type: object
+      required:
+        - username
+        - email
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 20
+          description: 用户名
+          example: johndoe
+        email:
+          type: string
+          format: email
+          description: 邮箱地址
+          example: user@example.com
+        status:
+          type: integer
+          description: 用户状态，0=禁用，1=启用
+          enum: [0, 1]
+          example: 1
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - old_password
+        - new_password
+      properties:
+        old_password:
+          type: string
+          minLength: 6
+          maxLength: 20
+          description: 旧密码
+          example: oldpass123
+        new_password:
+          type: string
+          minLength: 6
+          maxLength: 20
+          description: 新密码
+          example: newpass456
+
+    # 错误码枚举
+    ErrorCode:
+      type: integer
+      description: 错误码
+      enum:
+        - 0        # Success
+        - 10001    # ErrServer - 服务器内部错误
+        - 10002    # ErrParams - 参数错误
+        - 10003    # ErrNotFound - 资源不存在
+        - 10004    # ErrUnauthorized - 未授权
+        - 10005    # ErrForbidden - 禁止访问
+        - 10006    # ErrTooManyReq - 请求过于频繁
+        - 10007    # ErrTimeout - 请求超时
+        - 20001    # ErrUserNotFound - 用户不存在
+        - 20002    # ErrUserExisted - 用户已存在
+        - 20003    # ErrPassword - 密码错误
+        - 20004    # ErrUserDisabled - 用户已禁用
+        - 20005    # ErrInvalidToken - 无效的Token
+        - 20006    # ErrTokenExpired - Token已过期
+
+  # 复用示例
+  examples:
+    SuccessResponse:
+      value:
+        code: 0
+        message: success
+        data: null
+
+    ErrorResponseExample:
+      value:
+        code: 10001
+        message: 服务器内部错误
+        data: null
