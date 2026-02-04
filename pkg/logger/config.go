@@ -1,13 +1,54 @@
 package logger
 
-// Config 日志配置
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
+
+// Config holds logging configuration
 type Config struct {
-	Level       string `yaml:"level"`        // 日志级别: debug, info, warn, error
-	Filename    string `yaml:"filename"`     // 日志文件路径
-	MaxSize     int    `yaml:"max_size"`     // 单个日志文件最大大小(MB)
-	MaxBackups  int    `yaml:"max_backups"`  // 保留的旧日志文件最大数量
-	MaxAge      int    `yaml:"max_age"`      // 保留旧日志文件的最大天数
-	Compress    bool   `yaml:"compress"`     // 是否压缩日志文件
-	Console     bool   `yaml:"console"`      // 是否同时输出到控制台
-	EnableColor bool   `yaml:"enable_color"` // 控制台输出是否启用颜色
+	// Basic configuration
+	Level string `mapstructure:"level"` // debug, info, warn, error
+
+	// Output configuration
+	Filename    string `mapstructure:"filename"`    // Log file path
+	Console     bool   `mapstructure:"console"`     // Enable console output
+	EnableColor bool   `mapstructure:"enable_color"` // Enable color output
+
+	// File rotation configuration (lumberjack)
+	MaxSize    int  `mapstructure:"max_size"`    // Single log file max size before rotation (MB)
+	MaxAge     int  `mapstructure:"max_age"`     // Time to live (days)
+	MaxBackups int  `mapstructure:"max_backups"` // Max log file count
+	Compress   bool `mapstructure:"compress"`    // Compress rotated files
+}
+
+// DefaultConfig returns default configuration
+func DefaultConfig() *Config {
+	return &Config{
+		Level:       "info",
+		Console:     true,
+		EnableColor: true,
+	}
+}
+
+// Validate validates configuration
+func (c *Config) Validate() error {
+	// Validate log level
+	validLevels := map[string]bool{
+		"debug": true, "info": true, "warn": true, "error": true,
+	}
+	if !validLevels[c.Level] {
+		return fmt.Errorf("invalid log level: %s", c.Level)
+	}
+
+	// Validate filename
+	if c.Filename != "" {
+		dir := filepath.Dir(c.Filename)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("cannot create log directory: %v", err)
+		}
+	}
+
+	return nil
 }
