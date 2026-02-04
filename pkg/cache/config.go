@@ -3,17 +3,17 @@ package cache
 import "time"
 
 type Config struct {
-	Type   Type          `yaml:"type"` // redis / memory
-	Redis  *RedisConfig  `yaml:"redis"`
-	Memory *MemoryConfig `yaml:"memory"`
+	Type   Type          `mapstructure:"type"` // redis / memory
+	Redis  *RedisConfig  `mapstructure:"redis"`
+	Memory *MemoryConfig `mapstructure:"memory"`
 }
 
 type RedisConfig struct {
-	Addr     string `yaml:"addr"`
-	Password string `yaml:"password"`
-	DB       int    `yaml:"db"`
+	Addr     string `mapstructure:"addr"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
 }
 
 type MemoryConfig struct {
-	CleanupInterval time.Duration `yaml:"cleanup_interval"`
+	CleanupInterval time.Duration `mapstructure:"cleanup_interval"`
 }

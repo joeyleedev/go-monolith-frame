@@ -14,25 +14,25 @@ import (
 
 // Config 应用配置
 type Config struct {
-	Server   ServerConfig  `yaml:"server"`
-	Database mysql.Config  `yaml:"database"`
-	Cache    cache.Config  `yaml:"cache"`
-	Log      logger.Config `yaml:"log"`
-	JWT      JWTConfig     `yaml:"jwt"`
+	Server   ServerConfig  `mapstructure:"server"`
+	Database mysql.Config  `mapstructure:"database"`
+	Cache    cache.Config  `mapstructure:"cache"`
+	Log      logger.Config `mapstructure:"log"`
+	JWT      JWTConfig     `mapstructure:"jwt"`
 }
 
 // ServerConfig 服务器配置
 type ServerConfig struct {
-	Addr         string        `yaml:"addr"`          // 服务地址，如 :8080
-	Mode         string        `yaml:"mode"`          // gin运行模式: debug, release, test
-	ReadTimeout  time.Duration `yaml:"read_timeout"`  // 读取超时
-	WriteTimeout time.Duration `yaml:"write_timeout"` // 写入超时
+	Addr         string        `mapstructure:"addr"`          // 服务地址，如 :8080
+	Mode         string        `mapstructure:"mode"`          // gin运行模式: debug, release, test
+	ReadTimeout  time.Duration `mapstructure:"read_timeout"`  // 读取超时
+	WriteTimeout time.Duration `mapstructure:"write_timeout"` // 写入超时
 }
 
 // JWTConfig JWT配置
 type JWTConfig struct {
-	Secret     string        `yaml:"secret"`      // JWT密钥
-	ExpireTime time.Duration `yaml:"expire_time"` // 过期时间
+	Secret     string        `mapstructure:"secret"`      // JWT密钥
+	ExpireTime time.Duration `mapstructure:"expire_time"` // 过期时间
 }
 
 var globalConfig *Config
