@@ -163,7 +163,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	}
 
 	// 3. 返回统一格式响应
-	response.Success(c, listResp)
+	response.SuccessWithPagination(c, listResp.Items, listResp.Total, req.Page, req.PageSize)
 }
 
 // ChangePassword 修改密码

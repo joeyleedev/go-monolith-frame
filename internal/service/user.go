@@ -75,7 +75,7 @@ func (s *UserService) Create(ctx context.Context, req *request.CreateUserRequest
 	// 密码加密
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return errcode.ErrServer.WithMsg("密码加密失败").WithCause(err)
+		return errcode.ErrServer.WithMsg("密码加密失败").WithDetails(err)
 	}
 
 	// 创建用户实体
@@ -88,7 +88,7 @@ func (s *UserService) Create(ctx context.Context, req *request.CreateUserRequest
 
 	// 保存到数据库
 	if err := s.userRepo.Create(ctx, user); err != nil {
-		return errcode.ErrServer.WithMsg("创建用户失败").WithCause(err)
+		return errcode.ErrServer.WithMsg("创建用户失败").WithDetails(err)
 	}
 
 	// Cache Aside 模式：创建后删除相关缓存（如果存在）
@@ -114,7 +114,7 @@ func (s *UserService) Update(ctx context.Context, id int64, req *request.UpdateU
 	}
 
 	if err := s.userRepo.Update(ctx, user); err != nil {
-		return errcode.ErrServer.WithMsg("更新用户失败").WithCause(err)
+		return errcode.ErrServer.WithMsg("更新用户失败").WithDetails(err)
 	}
 
 	// Cache Aside 模式：更新后删除缓存，下次读取时会重新加载最新数据
@@ -128,7 +128,7 @@ func (s *UserService) Update(ctx context.Context, id int64, req *request.UpdateU
 func (s *UserService) Delete(ctx context.Context, id int64) error {
 	// 先删除数据库记录
 	if err := s.userRepo.Delete(ctx, id); err != nil {
-		return errcode.ErrServer.WithMsg("删除用户失败").WithCause(err)
+		return errcode.ErrServer.WithMsg("删除用户失败").WithDetails(err)
 	}
 
 	// Cache Aside 模式：删除后也删除缓存
@@ -159,7 +159,7 @@ func (s *UserService) Login(ctx context.Context, req *request.LoginRequest) (*re
 	// 4. 生成JWT Token
 	token, err := utils.GenerateToken(user.ID, user.Username, user.Email)
 	if err != nil {
-		return nil, errcode.ErrServer.WithMsg("生成Token失败").WithCause(err)
+		return nil, errcode.ErrServer.WithMsg("生成Token失败").WithDetails(err)
 	}
 
 	// 5. 返回登录响应
@@ -183,7 +183,7 @@ func (s *UserService) List(ctx context.Context, req *request.ListUsersRequest) (
 	// 调用repository查询
 	users, total, err := s.userRepo.List(ctx, req.Page, req.PageSize, req.Keyword)
 	if err != nil {
-		return nil, errcode.ErrServer.WithMsg("查询用户列表失败").WithCause(err)
+		return nil, errcode.ErrServer.WithMsg("查询用户列表失败").WithDetails(err)
 	}
 
 	// 转换为响应格式
@@ -219,13 +219,13 @@ func (s *UserService) ChangePassword(ctx context.Context, id int64, req *request
 	// 3. 加密新密码
 	hashedPassword, err := utils.HashPassword(req.NewPassword)
 	if err != nil {
-		return errcode.ErrServer.WithMsg("密码加密失败").WithCause(err)
+		return errcode.ErrServer.WithMsg("密码加密失败").WithDetails(err)
 	}
 
 	// 4. 更新密码
 	user.Password = hashedPassword
 	if err := s.userRepo.Update(ctx, user); err != nil {
-		return errcode.ErrServer.WithMsg("修改密码失败").WithCause(err)
+		return errcode.ErrServer.WithMsg("修改密码失败").WithDetails(err)
 	}
 
 	// 5. 清除缓存
@@ -251,7 +251,7 @@ func (s *UserService) UpdateStatus(ctx context.Context, id int64, status int8) e
 	// 更新状态
 	user.Status = status
 	if err := s.userRepo.Update(ctx, user); err != nil {
-		return errcode.ErrServer.WithMsg("更新用户状态失败").WithCause(err)
+		return errcode.ErrServer.WithMsg("更新用户状态失败").WithDetails(err)
 	}
 
 	// 清除缓存

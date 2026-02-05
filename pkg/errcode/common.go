@@ -1,13 +1,13 @@
 package errcode
 
-// 系统级错误 1xxxx
+// 系统级错误 (SYS_ 前缀)
 var (
-	Success         = New(0, "success")
-	ErrServer       = New(10001, "服务器内部错误")
-	ErrParams       = New(10002, "参数错误")
-	ErrNotFound     = New(10003, "资源不存在")
-	ErrUnauthorized = New(10004, "未授权")
-	ErrForbidden    = New(10005, "禁止访问")
-	ErrTooManyReq   = New(10006, "请求过于频繁")
-	ErrTimeout      = New(10007, "请求超时")
+	Success         = New("SUCCESS", "success")
+	ErrServer       = New("SYS_SERVER_ERROR", "服务器内部错误")
+	ErrParams       = New("SYS_INVALID_PARAMS", "参数错误")
+	ErrNotFound     = New("SYS_NOT_FOUND", "资源不存在")
+	ErrUnauthorized = New("SYS_UNAUTHORIZED", "未授权")
+	ErrForbidden    = New("SYS_FORBIDDEN", "禁止访问")
+	ErrTooManyReq   = New("SYS_TOO_MANY_REQUESTS", "请求过于频繁")
+	ErrTimeout      = New("SYS_TIMEOUT", "请求超时")
 )

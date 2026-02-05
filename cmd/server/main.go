@@ -92,6 +92,7 @@ func main() {
 	r := gin.New()
 
 	// 注册中间件
+	r.Use(middleware.RequestID())
 	r.Use(middleware.Recovery())
 	r.Use(middleware.CORS())
 	r.Use(middleware.Logger())
