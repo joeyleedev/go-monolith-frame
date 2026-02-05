@@ -11,8 +11,38 @@ info:
     请求头格式：`Authorization: Bearer {token}`
 
     ## 错误码规范
-    - `0xxxx` - 通用错误
-    - `2xxxx` - 用户模块错误
+    - `SYS_*` - 系统级错误
+    - `USER_*` - 用户模块错误
+
+    ## 响应格式
+    ### 成功响应
+    ```json
+    {
+      "success": true,
+      "data": { ... },
+      "pagination": { ... },
+      "meta": {
+        "timestamp": "2026-02-05T10:00:00Z",
+        "requestId": "xxx"
+      }
+    }
+    ```
+
+    ### 错误响应
+    ```json
+    {
+      "success": false,
+      "error": {
+        "code": "USER_NOT_FOUND",
+        "message": "用户不存在",
+        "details": { ... }
+      },
+      "meta": {
+        "timestamp": "2026-02-05T10:00:00Z",
+        "requestId": "xxx"
+      }
+    }
+    ```
 
   contact:
     name: API Support
@@ -46,13 +76,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthResponse'
-        '500':
-          description: 服务异常
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                allOf:
+                  - $ref: '#/components/schemas/Response'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/HealthData'
+              example:
+                success: true
+                data:
+                  status: ok
+                  time: 1704067200
+                meta:
+                  timestamp: "2026-02-05T10:00:00Z"
+                  requestId: "req-123456"
 
   /api/v1/users/login:
     post:
@@ -85,18 +122,46 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/LoginResponse'
-        '400':
-          description: 参数错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
+              example:
+                success: true
+                data:
+                  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  expiresAt: 1704067200
+                  user:
+                    id: 1
+                    username: johndoe
+                    email: user@example.com
+                    status: 1
+                meta:
+                  timestamp: "2026-02-05T10:00:00Z"
+                  requestId: "req-123456"
+        '200':
           description: 密码错误或用户被禁用
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                password_error:
+                  summary: 密码错误
+                  value:
+                    success: false
+                    error:
+                      code: USER_INVALID_PASSWORD
+                      message: 密码错误
+                    meta:
+                      timestamp: "2026-02-05T10:00:00Z"
+                      requestId: "req-123456"
+                user_disabled:
+                  summary: 用户被禁用
+                  value:
+                    success: false
+                    error:
+                      code: USER_DISABLED
+                      message: 用户已禁用
+                    meta:
+                      timestamp: "2026-02-05T10:00:00Z"
+                      requestId: "req-123456"
 
   /api/v1/users:
     post:
@@ -124,18 +189,40 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Response'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/UserResponse'
-        '400':
+                $ref: '#/components/schemas/Response'
+              example:
+                success: true
+                data: null
+                meta:
+                  timestamp: "2026-02-05T10:00:00Z"
+                  requestId: "req-123456"
+        '200':
           description: 参数错误或用户已存在
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_params:
+                  summary: 参数错误
+                  value:
+                    success: false
+                    error:
+                      code: SYS_INVALID_PARAMS
+                      message: 参数错误
+                    meta:
+                      timestamp: "2026-02-05T10:00:00Z"
+                      requestId: "req-123456"
+                user_exists:
+                  summary: 用户已存在
+                  value:
+                    success: false
+                    error:
+                      code: USER_EXISTS
+                      message: 用户已存在
+                    meta:
+                      timestamp: "2026-02-05T10:00:00Z"
+                      requestId: "req-123456"
 
     get:
       tags:
@@ -177,19 +264,34 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/schemas/Response'
+                  - $ref: '#/components/schemas/PaginatedResponse'
                   - type: object
                     properties:
                       data:
-                        $ref: '#/components/schemas/ListUsersResponse'
-        '400':
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserResponse'
+              example:
+                success: true
+                data:
+                  - id: 1
+                    username: johndoe
+                    email: user@example.com
+                    status: 1
+                  - id: 2
+                    username: janedoe
+                    email: jane@example.com
+                    status: 1
+                pagination:
+                  total: 100
+                  page: 1
+                  pageSize: 10
+                  totalPages: 10
+                meta:
+                  timestamp: "2026-02-05T10:00:00Z"
+                  requestId: "req-123456"
+        '200':
           description: 参数错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: 未授权
           content:
             application/json:
               schema:
@@ -224,24 +326,30 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/UserResponse'
-        '400':
-          description: 参数错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: 未授权
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
+              example:
+                success: true
+                data:
+                  id: 1
+                  username: johndoe
+                  email: user@example.com
+                  status: 1
+                meta:
+                  timestamp: "2026-02-05T10:00:00Z"
+                  requestId: "req-123456"
+        '200':
           description: 用户不存在
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: USER_NOT_FOUND
+                  message: 用户不存在
+                meta:
+                  timestamp: "2026-02-05T10:00:00Z"
+                  requestId: "req-123456"
 
     put:
       tags:
@@ -278,26 +386,9 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Response'
-                  - type: object
-                    properties:
-                      data:
-                        $ref: '#/components/schemas/UserResponse'
-        '400':
-          description: 参数错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: 未授权
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: 用户不存在
+                $ref: '#/components/schemas/Response'
+        '200':
+          description: 参数错误或用户不存在
           content:
             application/json:
               schema:
@@ -326,20 +417,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
-        '400':
-          description: 参数错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: 未授权
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: 用户不存在
+        '200':
+          description: 参数错误或用户不存在
           content:
             application/json:
               schema:
@@ -381,24 +460,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
-        '400':
-          description: 参数错误或新密码与旧密码相同
+        '200':
+          description: 参数错误、旧密码错误或用户不存在
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: 未授权或旧密码错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: 用户不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                password_wrong:
+                  summary: 旧密码错误
+                  value:
+                    success: false
+                    error:
+                      code: USER_INVALID_PASSWORD
+                      message: 密码错误
+                    meta:
+                      timestamp: "2026-02-05T10:00:00Z"
+                      requestId: "req-123456"
+                unauthorized:
+                  summary: 只能修改自己的密码
+                  value:
+                    success: false
+                    error:
+                      code: SYS_UNAUTHORIZED
+                      message: 只能修改自己的密码
+                    meta:
+                      timestamp: "2026-02-05T10:00:00Z"
+                      requestId: "req-123456"
 
 components:
   securitySchemes:
@@ -409,67 +497,143 @@ components:
       description: JWT 认证，从登录接口获取 token
 
   schemas:
-    # 通用响应结构
+    # 基础响应结构
     Response:
       type: object
       required:
-        - code
-        - message
+        - success
+        - meta
       properties:
-        code:
-          type: integer
-          description: 响应状态码，0表示成功
-          example: 0
-        message:
-          type: string
-          description: 响应消息
-          example: success
+        success:
+          type: boolean
+          description: 请求是否成功
+          example: true
         data:
           type: object
           nullable: true
           description: 响应数据
           example: null
+        meta:
+          $ref: '#/components/schemas/MetaInfo'
 
+    # 分页响应结构
+    PaginatedResponse:
+      type: object
+      required:
+        - success
+        - meta
+      properties:
+        success:
+          type: boolean
+          description: 请求是否成功
+          example: true
+        data:
+          type: object
+          nullable: true
+          description: 响应数据
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
+        meta:
+          $ref: '#/components/schemas/MetaInfo'
+
+    # 错误响应结构
     ErrorResponse:
       type: object
       required:
-        - code
-        - message
+        - success
+        - meta
       properties:
-        code:
-          type: integer
-          description: 错误码
-          example: 10001
-        message:
-          type: string
-          description: 错误信息
-          example: 服务器内部错误
-        data:
-          type: object
-          nullable: true
-          example: null
+        success:
+          type: boolean
+          description: 请求是否成功
+          example: false
+        error:
+          $ref: '#/components/schemas/ErrorInfo'
+        meta:
+          $ref: '#/components/schemas/MetaInfo'
 
-    # 健康检查响应
-    HealthResponse:
+    # 错误信息
+    ErrorInfo:
       type: object
       required:
         - code
         - message
       properties:
         code:
-          type: integer
-          example: 0
+          type: string
+          description: 错误码
+          example: USER_NOT_FOUND
         message:
           type: string
-          example: success
-        data:
+          description: 错误信息
+          example: 用户不存在
+        details:
           type: object
-          nullable: true
-          example:
-            status: ok
-            timestamp: 1704067200
+          description: 错误详情
+          example: null
 
-    # 用户相关响应
+    # 分页信息
+    PaginationInfo:
+      type: object
+      required:
+        - total
+        - page
+        - pageSize
+        - totalPages
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: 总记录数
+          example: 100
+        page:
+          type: integer
+          description: 当前页码
+          example: 1
+        pageSize:
+          type: integer
+          description: 每页数量
+          example: 10
+        totalPages:
+          type: integer
+          description: 总页数
+          example: 10
+
+    # 元信息
+    MetaInfo:
+      type: object
+      required:
+        - timestamp
+        - requestId
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: 响应时间戳 (RFC3339)
+          example: "2026-02-05T10:00:00Z"
+        requestId:
+          type: string
+          description: 请求ID，可通过请求头 X-Request-ID 指定
+          example: "req-123456"
+
+    # 健康检查数据
+    HealthData:
+      type: object
+      required:
+        - status
+        - time
+      properties:
+        status:
+          type: string
+          description: 服务状态
+          example: ok
+        time:
+          type: integer
+          format: int64
+          description: 当前时间戳
+          example: 1704067200
+
+    # 用户响应
     UserResponse:
       type: object
       required:
@@ -498,41 +662,25 @@ components:
           enum: [0, 1]
           example: 1
 
+    # 登录响应
     LoginResponse:
       type: object
       required:
         - token
-        - expires_at
+        - expiresAt
         - user
       properties:
         token:
           type: string
           description: JWT Token
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImpvaG5kb2UiLCJleHAiOjE3MDQwNjcyMDB9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-        expires_at:
+        expiresAt:
           type: integer
           format: int64
           description: 过期时间戳（秒）
           example: 1704067200
         user:
           $ref: '#/components/schemas/UserResponse'
-
-    ListUsersResponse:
-      type: object
-      required:
-        - total
-        - items
-      properties:
-        total:
-          type: integer
-          format: int64
-          description: 总记录数
-          example: 100
-        items:
-          type: array
-          description: 用户列表
-          items:
-            $ref: '#/components/schemas/UserResponse'
 
     # 请求模型
     LoginRequest:
@@ -622,34 +770,20 @@ components:
 
     # 错误码枚举
     ErrorCode:
-      type: integer
+      type: string
       description: 错误码
       enum:
-        - 0        # Success
-        - 10001    # ErrServer - 服务器内部错误
-        - 10002    # ErrParams - 参数错误
-        - 10003    # ErrNotFound - 资源不存在
-        - 10004    # ErrUnauthorized - 未授权
-        - 10005    # ErrForbidden - 禁止访问
-        - 10006    # ErrTooManyReq - 请求过于频繁
-        - 10007    # ErrTimeout - 请求超时
-        - 20001    # ErrUserNotFound - 用户不存在
-        - 20002    # ErrUserExisted - 用户已存在
-        - 20003    # ErrPassword - 密码错误
-        - 20004    # ErrUserDisabled - 用户已禁用
-        - 20005    # ErrInvalidToken - 无效的Token
-        - 20006    # ErrTokenExpired - Token已过期
-
-  # 复用示例
-  examples:
-    SuccessResponse:
-      value:
-        code: 0
-        message: success
-        data: null
-
-    ErrorResponseExample:
-      value:
-        code: 10001
-        message: 服务器内部错误
-        data: null
+        - SUCCESS                    # 成功
+        - SYS_SERVER_ERROR          # 服务器内部错误
+        - SYS_INVALID_PARAMS        # 参数错误
+        - SYS_NOT_FOUND            # 资源不存在
+        - SYS_UNAUTHORIZED         # 未授权
+        - SYS_FORBIDDEN           # 禁止访问
+        - SYS_TOO_MANY_REQUESTS    # 请求过于频繁
+        - SYS_TIMEOUT             # 请求超时
+        - USER_NOT_FOUND          # 用户不存在
+        - USER_EXISTS             # 用户已存在
+        - USER_INVALID_PASSWORD   # 密码错误
+        - USER_DISABLED           # 用户已禁用
+        - USER_INVALID_TOKEN      # 无效的Token
+        - USER_TOKEN_EXPIRED     # Token已过期
