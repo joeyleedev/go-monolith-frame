@@ -32,14 +32,8 @@ func (c *Config) GetLogLevel() logger.LogLevel {
 	}
 }
 
-// Validate 验证配置并设置合理的默认值
-func (c *Config) Validate() error {
-	// 验证 DSN 不为空
-	if c.DSN == "" {
-		return fmt.Errorf("database DSN is required")
-	}
-
-	// 设置连接池参数的默认值
+// SetDefaults 设置配置的默认值
+func (c *Config) SetDefaults() {
 	if c.MaxOpenConns <= 0 {
 		c.MaxOpenConns = 100
 	}
@@ -51,6 +45,31 @@ func (c *Config) Validate() error {
 	}
 	if c.ConnMaxIdleTime <= 0 {
 		c.ConnMaxIdleTime = 10 * time.Minute
+	}
+	if c.SlowThreshold <= 0 {
+		c.SlowThreshold = 200 * time.Millisecond // 默认200ms
+	}
+}
+
+// Validate 验证配置
+func (c *Config) Validate() error {
+	// 验证 DSN 不为空
+	if c.DSN == "" {
+		return fmt.Errorf("database DSN is required")
+	}
+
+	// 验证连接池参数
+	if c.MaxOpenConns <= 0 {
+		return fmt.Errorf("max open connections must be positive, got %d", c.MaxOpenConns)
+	}
+	if c.MaxIdleConns <= 0 {
+		return fmt.Errorf("max idle connections must be positive, got %d", c.MaxIdleConns)
+	}
+	if c.ConnMaxLifetime <= 0 {
+		return fmt.Errorf("connection max lifetime must be positive, got %v", c.ConnMaxLifetime)
+	}
+	if c.ConnMaxIdleTime <= 0 {
+		return fmt.Errorf("connection max idle time must be positive, got %v", c.ConnMaxIdleTime)
 	}
 
 	// 验证慢查询阈值为正数
